@@ -2722,28 +2722,29 @@ var Filter = function (options, methods, formatter, callback) {
     this.callbacks = [];
     this.pollFilters = [];
     this.formatter = formatter;
-    this.implementation.newFilter(this.options, function(error, id){
-        if(error) {
-            self.callbacks.forEach(function(cb){
-                cb(error);
-            });
-        } else {
+
+    if (callback) {
+        this.implementation.newFilter(this.options, function(error, id) {
+            if (error) {
+                return self.callbacks.forEach(function(cb){
+                    cb(error);
+                });
+            } 
             self.filterId = id;
 
             // get filter logs for the already existing watch calls
             self.callbacks.forEach(function(cb){
                 getLogsAtStart(self, cb);
             });
+
             if(self.callbacks.length > 0)
                 pollFilter(self);
 
-            // start to watch immediately
-            if(callback) {
-                return self.watch(callback);
-            }
-        }
-    });
-
+            return self.watch(callback);
+        });
+    } else {
+        this.filterId = this.implementation.newFilter(this.options);
+    }
 };
 
 Filter.prototype.watch = function (callback) {
